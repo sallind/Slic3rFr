@@ -1,82 +1,81 @@
-_Q: Oh cool, a new RepRap slicer?_
+_Q: Oh cool, une nouvelle trancheuse RepRap en francais?_
 
-A: Yes.
+A: Oui.
 
 # Slic3r
 
-## What's it?
+## Qu'est-ce?
 
-Slic3r is a G-code generator for 3D printers. It's compatible with RepRaps,
-makerwares, Ultimakers and many more machines.
+Slic3rFR est un générateur de code G pour imprimantes 3D en francais. Il est compatible avec RepRaps ,
+makerwares , Ultimakers et bien d'autres machines.
 
-See the [project homepage](http://slic3r.org/) at slic3r.org and the
-[documentation](https://github.com/alexrj/Slic3r/wiki/Documentation) on the Slic3r wiki for more information.
+Voir la [page d'accueil du projet] ( http://slic3r.org/ ) à slic3r.org et l'
+[Documentation ] ( https://github.com/alexrj/Slic3r/wiki/Documentation ) sur le wiki Slic3r pour plus d'informations .
 
-## What language is it written in?
+## En quelle language est-il rédigé?
 
-Proudly Perl, with some parts in C++.
-If you're wondering why Perl, see http://xkcd.com/224/
+Fièrement en Perl, avec certaines parties en C + + .
+Si vous vous demandez pourquoi Perl , voir http://xkcd.com/224/
 
-## What's its current status?
+## Quel est son état actuel ?
 
-Slic3r current key features are:
+Slic3r principales caractéristiques sont:
 
-* multi-platform (Linux/Mac/Win) and packaged as standalone-app with no dependencies required;
-* easy configuration/calibration;
-* read binary and ASCII STL files as well as OBJ and AMF;
-* powerful command line interface;
-* easy GUI with plating and manipulation facilities;
-* multithreaded;
-* multiple infill patterns, with customizable density and angle;
-* retraction;
-* skirt;
-* infill every N layers (like the "Skin" plugin for Skeinforge);
-* detect optimal infill direction for bridges;
-* save configuration profiles;
-* center print around bed center point;
-* multiple solid layers near horizontal external surfaces;
-* ability to scale, rotate and duplicate input objects;
-* customizable initial and final G-code;
-* support material;
-* cooling and fan control;
-* use different speed for bottom layer, perimeters, small perimeters, bridges, solid infill;
-* ability to print complete objects before moving onto next one.
+* Multi- plateforme (Linux / Mac / Win) et conditionnée en autonome sans dépendances requises ;
+* Configuration / étalonnage facile ;
+* Lit les binaires et des fichiers STL ASCII ainsi que d'articles et de l'AMF ;
+* Puissante interface de ligne de commande ;
+* Interface facile avec Placement automatique et assistant d'installations et de manipulation ;
+* Multi-thread ;
+* Plusieurs motifs de remplissage , avec une densité et un angle personnalisable ;
+* Rétractation ;
+* Jupe ;
+* Intercalaire tous les N couches ( comme le plugin " Skin " pour Skeinforge ) ;
+* Détecter direction de remplissage optimal pour les ponts;
+* Enregistrer des profils de configuration ;
+* Centre d' impression autour du centre du lit ;
+* Multiples couches solides près de surfaces extérieures horizontales ;
+* Possibilité de redimensionner, faire pivoter et dupliquer des objets d'entrée;
+* Debut et fin de code G-code personnalisable;
+* Matériel de soutien;
+* Le refroidissement et le contrôle de ventilateur;
+* Utiliser des vitesses différentes pour la couche de fond , les périmètres , les petits périmètres , des ponts, remplissage solide;
+* Possibilité d'imprimer des objets complets avant de passer à une autre.
 
-Experimental features include:
+Fonctionnalités expérimentales incluent :
 
-* generation of G2/G3 commands for native arcs;
-* G0 commands for fast retraction.
+* Génération de G2/G3 commandes pour les arcs indigènes;
+* G0 commandes pour le retrait rapide .
 
-Roadmap includes the following goals:
+Feuille de route comprend les objectifs suivants:
 
-* output some statistics;
-* support material for internal perimeters;
-* more GUI work;
-* more fill patterns;
-* a more complete roadmap is needed too ;-)
+* Sortie des statistiques ;
+* Le matériel de soutien pour les périmètres internes ;
+* Travail plus graphique ;
+* Modèles plus remplissage ;
+* Une feuille de route plus complète est nécessaire aussi ;-)
 
-## How to install?
+## Comment installer ?
 
-It's very easy. See the [project homepage](http://slic3r.org/)
-for instructions and links to the precompiled packages that you can just
-download and run, with no dependencies required.
+Il est très facile . Voir la [page d'accueil du projet] ( http://slic3r.org/ )
+Pour obtenir des instructions et des liens vers les paquets précompilés que vous pouvez juste
+télécharger et exécuter , sans dépendances requises .
 
-## Can I help?
+## Puis- je vous aider?
 
-Sure! Drop me a line at aar@cpan.org. You can also 
-find me in #reprap and in #slic3r on FreeNode with the nickname _Sound_.
-Before sending patches and pull requests contact me to discuss your proposed
-changes: this way we'll ensure nobody wastes their time and no conflicts arise
-in development.
+Bien sûr ! Envoyez-moi une ligne à info@daniel-stp.fr . 
+Avant d'envoyer des correctifs et des demandes contacter moi pour discuter de votre projet
+modifications : de cette façon, nous ferons en sorte que personne ne gaspille sont temps et pas de conflits surgissent
+dans le développement.
 
-## What's Slic3r license?
+## Licence Slic3rFR ?
 
-Slic3r is licensed under the _GNU Affero General Public License, version 3_.
-The author is Alessandro Ranellucci.
+Slic3rFR est sous licence Affero General Public License _GNU , la version 3_ .
+L'auteur est Alessandro Ranellucci traduction Daniel Sallin .
 
-The [Silk icon set](http://www.famfamfam.com/lab/icons/silk/) used in Slic3r is
-licensed under the _Creative Commons Attribution 3.0 License_.
-The author of the Silk icon set is Mark James.
+Le [Silk icon set] ( http://www.famfamfam.com/lab/icons/silk/ ) utilisé dans Slic3rFR est
+sous licence _Creative Commons Attribution 3.0 License_ .
+L'auteur de l'icône est Mark James .
 
 ## How can I invoke slic3r.pl using the command line?
 
