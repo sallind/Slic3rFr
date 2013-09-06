@@ -95,7 +95,6 @@ sub new {
         
         my $preset = $self->current_preset;
         #my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
-        #my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
         my $default_name = $preset->{default} ? 'SansTitre' : basename($preset->{name});
         $default_name =~ s/\.ini$//i;
         
@@ -323,8 +322,7 @@ sub set_dirty {
     if ($dirty) {
         $self->{dirty} = $i;
         if ($text !~ / \(modified\)$/) {
-            #$self->{presets_choice}->SetString($i, "$text (modified)");
-            $self->{presets_choice}->SetString($i, "$text (modifié)");
+            $self->{presets_choice}->SetString($i, "$text (modified)");
             $self->{presets_choice}->SetSelection($selection);  # http://trac.wxwidgets.org/ticket/13769
         }
     } else {
@@ -624,7 +622,7 @@ sub build {
                 },
                 {
                     #label   => 'Bed',
-                    label   => 'Lit',
+                    label   => 'Lit d\'impression',
                     options => [qw(first_layer_bed_temperature bed_temperature)],
                 },
             ],
@@ -648,7 +646,7 @@ sub build {
         },
         {
             #title => 'Fan settings',
-            title => 'Parametre du ventillateur',
+            title => 'Paramètres du ventillateur',
             options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers)],
             lines => [
                 {
@@ -686,7 +684,7 @@ sub _update_description {
     my $fan_other_layers = $config->fan_always_on
         ? sprintf "sera toujours en marche à %d%%%s.", $config->min_fan_speed,
                 ($config->disable_fan_first_layers > 1
-                    ? " except for the first " . $config->disable_fan_first_layers . " couches"
+                    ? " sauf pour la première " . $config->disable_fan_first_layers . " couches"
                     : $config->disable_fan_first_layers == 1
                         ? " sauf pour la première couche"
                         : "")
@@ -818,8 +816,8 @@ sub _build_extruder_pages {
     
     foreach my $extruder_idx (0 .. $self->{extruders_count}-1) {
         # build page if it doesn't exist
-        #$self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png', optgroups => [
-        $self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extrudeur " . ($extruder_idx + 1), 'funnel.png', optgroups => [
+        $self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png', optgroups => [
+        #$self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extrudeur " . ($extruder_idx + 1), 'funnel.png', optgroups => [
             {
                 #title => 'Size',
                 title => 'Taille',
@@ -973,7 +971,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, "Enregistrement des préréglage", wxDefaultPosition, wxDefaultSize);
     
     #my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", wxDefaultPosition, wxDefaultSize);
-    my $text = Wx::StaticText->new($self, -1, "enregistrement " . lc($params{title}) . " sous:", wxDefaultPosition, wxDefaultSize);
+    my $text = Wx::StaticText->new($self, -1, "Enregistrement " . lc($params{title}) . " sous:", wxDefaultPosition, wxDefaultSize);
     $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, wxDefaultPosition, wxDefaultSize, $params{values},
                                        wxTE_PROCESS_ENTER);
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
