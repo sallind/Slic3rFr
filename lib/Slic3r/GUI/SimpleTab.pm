@@ -26,8 +26,7 @@ sub new {
     $self->build;
     
     {
-        #my $label = Wx::StaticText->new($self, -1, "Want more options? Switch to the Expert Mode.", wxDefaultPosition, wxDefaultSize);
-        my $label = Wx::StaticText->new($self, -1, "Choisir plus d\'option? Passer en mode expert.", wxDefaultPosition, wxDefaultSize);
+        my $label = Wx::StaticText->new($self, -1, "Plus d\'option? Passez en mode expert.", wxDefaultPosition, wxDefaultSize);
         $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
         $self->{vsizer}->Add($label, 0, wxEXPAND | wxALL, 10);
     }
@@ -111,14 +110,12 @@ sub build {
     my $self = shift;
     
     $self->append_optgroup(
-        #title => 'General',
         title => 'Général',
         options => [qw(layer_height perimeters top_solid_layers bottom_solid_layers)],
         lines => [
             Slic3r::GUI::OptionsGroup->single_option_line('layer_height'),
             Slic3r::GUI::OptionsGroup->single_option_line('perimeters'),
             {
-                #label   => 'Solid layers',
                 label   => 'Couche solide',
                 options => [qw(top_solid_layers bottom_solid_layers)],
             },
@@ -126,37 +123,31 @@ sub build {
     );
     
     $self->append_optgroup(
-        #title => 'Infill',
         title => 'Remplissage',
         options => [qw(fill_density fill_pattern)],
     );
     
     $self->append_optgroup(
-        #title => 'Support material',
         title => 'Support de matériaux',
         options => [qw(support_material support_material_spacing raft_layers)],
     );
     
     $self->append_optgroup(
-        #title => 'Speed',
         title => 'Vitesse',
         options => [qw(perimeter_speed infill_speed travel_speed)],
     );
     
     $self->append_optgroup(
-        #title => 'Brim',
         title => 'Bordure',
         options => [qw(brim_width)],
     );
     
     $self->append_optgroup(
-        #title => 'Sequential printing',
         title => 'Impression séquencielle',
         options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
         lines => [
             Slic3r::GUI::OptionsGroup->single_option_line('complete_objects'),
             {
-                #label   => 'Extruder clearance (mm)',
                 label   => 'Dégagement de l\'extrudeur (mm)',
                 options => [qw(extruder_clearance_radius extruder_clearance_height)],
             },
@@ -174,24 +165,20 @@ sub build {
     my $self = shift;
     
     $self->append_optgroup(
-        #title => 'Filament',
-        title => 'Tête d\'impression',
+        title => 'Fil',
         options => ['filament_diameter#0', 'extrusion_multiplier#0'],
     );
     
     $self->append_optgroup(
-        #title => 'Temperature (°C)',
         title => 'Température (°C)',
         options => ['temperature#0', 'first_layer_temperature#0', qw(bed_temperature first_layer_bed_temperature)],
         lines => [
             {
-                #label   => 'Extruder',
                 label   => 'Extrudeur',
                 options => ['first_layer_temperature#0', 'temperature#0'],
             },
             {
-                #label   => 'Bed',
-                label   => 'Lit',
+                label   => 'Lit d\'impression',
                 options => [qw(first_layer_bed_temperature bed_temperature)],
             },
         ],
@@ -208,38 +195,34 @@ sub build {
     my $self = shift;
     
     $self->append_optgroup(
-        #title => 'Size and coordinates',
         title => 'Taille et coordonées',
         options => [qw(bed_size print_center z_offset)],
     );
     
     $self->append_optgroup(
-        #title => 'Firmware',
         title => 'Firmware',
         options => [qw(gcode_flavor)],
     );
     
     $self->append_optgroup(
-        #title => 'Extruder',
         title => 'Extrudeur',
         options => ['nozzle_diameter#0'],
     );
     
     $self->append_optgroup(
-        #title => 'Retraction',
         title => 'Rétraction',
         options => ['retract_length#0', 'retract_lift#0'],
     );
     
     $self->append_optgroup(
-        title => 'Start G-code',
+        title => 'G-code de debut',
         title => 'G-code de debut',
         no_labels => 1,
         options => [qw(start_gcode)],
     );
     
     $self->append_optgroup(
-        title => 'End G-code',
+        title => 'G-code de fin',
         title => 'G-code de fin',
         no_labels => 1,
         options => [qw(end_gcode)],

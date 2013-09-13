@@ -37,6 +37,7 @@ sub new {
     $self->volumes([]);
     foreach my $volume (@{$object->volumes}) {
         my $mesh = $volume->mesh;
+        $mesh->repair;
         
         my $material_id = $volume->material_id // '_';
         my $color_idx = first { $materials[$_] eq $material_id } 0..$#materials;
@@ -49,12 +50,13 @@ sub new {
         };
         
         {
-            my @verts = map @{ $mesh->vertices->[$_] }, map @$_, @{$mesh->facets};
+            my $vertices = $mesh->vertices;
+            my @verts = map @{ $vertices->[$_] }, map @$_, @{$mesh->facets};
             $v->{verts} = OpenGL::Array->new_list(GL_FLOAT, @verts);
         }
         
         {
-            my @norms = map { @$_, @$_, @$_ } map normalize(triangle_normal(map $mesh->vertices->[$_], @$_)), @{$mesh->facets};
+            my @norms = map { @$_, @$_, @$_ } @{$mesh->normals};
             $v->{norms} = OpenGL::Array->new_list(GL_FLOAT, @norms);
         }
     }

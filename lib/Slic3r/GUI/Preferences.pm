@@ -16,8 +16,6 @@ sub new {
             {
                 opt_key     => 'mode',
                 type        => 'select',
-                #label       => 'Mode',
-                #tooltip     => 'Choose between a simpler, basic mode and an expert mode with more options and more complicated interface.',
                 label       => 'Mode',
                 tooltip     => 'Choisissez entre un mode de base simple et un mode expert avec plus d\'options et une interface plus compliqué.',
                 labels      => ['Simple','Expert'],
@@ -27,8 +25,6 @@ sub new {
             {
                 opt_key     => 'version_check',
                 type        => 'bool',
-                #label       => 'Check for updates',
-                #tooltip     => 'If this is enabled, Slic3r will check for updates daily and display a reminder if a newer version is available.',
                 label       => 'Controler les mise à jour',
                 tooltip     => 'Si cette option est activée, Slic3r va vérifier les mises à jour quotidiennement et affiche un rappel si une nouvelle version est disponible.',
                 default     => $Slic3r::GUI::Settings->{_}{version_check} // 1,
@@ -37,8 +33,6 @@ sub new {
             {
                 opt_key     => 'remember_output_path',
                 type        => 'bool',
-                #label       => 'Remember output directory',
-                #tooltip     => 'If this is enabled, Slic3r will prompt the last output directory instead of the one containing the input files.',
                 label       => 'Mémorisé le répertoire de sortie',
                 tooltip     => 'Si cette option est activée, Slic3r vous demandera le dernier répertoire de sortie au lieu de celui contenant les fichiers d\'entrée.',
                 default     => $Slic3r::GUI::Settings->{_}{remember_output_path},
@@ -65,7 +59,6 @@ sub _accept {
     $self->EndModal(wxID_OK);
     
     if ($self->{values}{mode}) {
-        #Slic3r::GUI::warning_catcher($self)->("You need to restart Slic3r to make the changes effective.");
         Slic3r::GUI::warning_catcher($self)->("Vous devez redémarrer Slic3r pour appliquer les changements.");
     }
     

@@ -106,22 +106,22 @@ sub OnInit {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        $fileMenu->Append(MI_LOAD_CONF, "&Téléchargement de configuration…\tCtrl+L", 'Charge un fichier exporter de configuration');
-        $fileMenu->Append(MI_EXPORT_CONF, "&Exportation de configuration…\tCtrl+E", 'Exporte le fichier courant de configuration');
+        $fileMenu->Append(MI_LOAD_CONF, "&Load Config…\tCtrl+L", 'Load exported configuration file');
+        $fileMenu->Append(MI_EXPORT_CONF, "&Export Config…\tCtrl+E", 'Export current configuration to file');
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_QUICK_SLICE, "T&ranchage rapide…\tCtrl+U", 'tranche un fichier');
-        $fileMenu->Append(MI_QUICK_SAVE_AS, "Tr&anchage rapide et entrgistrement…\tCtrl+Alt+U", 'Tranche un fichier et l\'enregistre');
-        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Répète le dernier tranchage rapide\tCtrl+Shift+U", 'Répète le dernier tranchage rapide');
+        $fileMenu->Append(MI_QUICK_SLICE, "Q&uick Slice…\tCtrl+U", 'Slice file');
+        $fileMenu->Append(MI_QUICK_SAVE_AS, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as');
+        my $repeat = $fileMenu->Append(MI_REPEAT_QUICK, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice');
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_SLICE_SVG, "Tranche enSV&G…\tCtrl+G", 'Tranche un fichier en SVG');
+        $fileMenu->Append(MI_SLICE_SVG, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG');
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(MI_REPAIR_STL, "Repare un fichier STL …", 'Répare automatiquement un fichier STL');
-        $fileMenu->Append(MI_COMBINE_STLS, "Combine plusieurs fichier STL…", 'Combiner plusieurs fichiers STL en un seul fichier multi-matériaux AMF');
+        $fileMenu->Append(MI_REPAIR_STL, "Repair STL file…", 'Automatically repair an STL file');
+        $fileMenu->Append(MI_COMBINE_STLS, "Combine multi-material STL files…", 'Combine multiple STL files into a single multi-material AMF file');
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_PREFERENCES, "Préférence…", 'Préférences de l\'aplication');
+        $fileMenu->Append(wxID_PREFERENCES, "Preferences…", 'Application preferences');
         $fileMenu->AppendSeparator();
-        $fileMenu->Append(wxID_EXIT, "&Quitter", 'Quite Slic3r');
+        $fileMenu->Append(wxID_EXIT, "&Quit", 'Quit Slic3r');
         EVT_MENU($frame, MI_LOAD_CONF, sub { $self->{skeinpanel}->load_config_file });
         EVT_MENU($frame, MI_EXPORT_CONF, sub { $self->{skeinpanel}->export_config });
         EVT_MENU($frame, MI_QUICK_SLICE, sub { $self->{skeinpanel}->quick_slice;
@@ -140,9 +140,9 @@ sub OnInit {
     my $platerMenu;
     unless ($no_plater) {
         $platerMenu = Wx::Menu->new;
-        $platerMenu->Append(MI_PLATER_EXPORT_GCODE, "Exporter un G-code...", 'Exporter la prévisualisation en G-code');
-        $platerMenu->Append(MI_PLATER_EXPORT_STL, "Exporter un STL...", 'Exporter la prévisualisation en STL');
-        $platerMenu->Append(MI_PLATER_EXPORT_AMF, "Exporter un AMF...", 'Exporter la prévisualisation en AMF');
+        $platerMenu->Append(MI_PLATER_EXPORT_GCODE, "Export G-code...", 'Export current plate as G-code');
+        $platerMenu->Append(MI_PLATER_EXPORT_STL, "Export STL...", 'Export current plate as STL');
+        $platerMenu->Append(MI_PLATER_EXPORT_AMF, "Export AMF...", 'Export current plate as AMF');
         EVT_MENU($frame, MI_PLATER_EXPORT_GCODE, sub { $self->{skeinpanel}{plater}->export_gcode });
         EVT_MENU($frame, MI_PLATER_EXPORT_STL, sub { $self->{skeinpanel}{plater}->export_stl });
         EVT_MENU($frame, MI_PLATER_EXPORT_AMF, sub { $self->{skeinpanel}{plater}->export_amf });
@@ -152,10 +152,10 @@ sub OnInit {
     my $windowMenu = Wx::Menu->new;
     {
         my $tab_count = $no_plater ? 3 : 4;
-        $windowMenu->Append(MI_TAB_PLATER, "Séléction de l\'onglet prévisualisation\tCtrl+1", 'Séléction de l\'onglet prévisualisation r') unless $no_plater;
-        $windowMenu->Append(MI_TAB_PRINT, "Séléction de l\'onglet impression\tCtrl+2", 'Séléction de l\'onglet impression ');
-        $windowMenu->Append(MI_TAB_FILAMENT, "Séléction de l\'onglet fil\tCtrl+3", 'Séléction de l\'onglet  fil');
-        $windowMenu->Append(MI_TAB_PRINTER, "Séléction de l\'onglet imprimante\tCtrl+4", 'Séléction de l\'onglet paramètre d\'imprimante');
+        $windowMenu->Append(MI_TAB_PLATER, "Select &Plater Tab\tCtrl+1", 'Show the plater') unless $no_plater;
+        $windowMenu->Append(MI_TAB_PRINT, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings');
+        $windowMenu->Append(MI_TAB_FILAMENT, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings');
+        $windowMenu->Append(MI_TAB_PRINTER, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings');
         EVT_MENU($frame, MI_TAB_PLATER, sub { $self->{skeinpanel}->select_tab(0) }) unless $no_plater;
         EVT_MENU($frame, MI_TAB_PRINT, sub { $self->{skeinpanel}->select_tab($tab_count-3) });
         EVT_MENU($frame, MI_TAB_FILAMENT, sub { $self->{skeinpanel}->select_tab($tab_count-2) });
@@ -165,14 +165,14 @@ sub OnInit {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Lance l\'asistant de configuration $Slic3r::GUI::ConfigWizard::wizard");
+        $helpMenu->Append(MI_CONF_WIZARD, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard");
         $helpMenu->AppendSeparator();
-        $helpMenu->Append(MI_WEBSITE, "&Site&Web de Slic3r", 'Ouvre le site web de Slic3r dans votre navigateur');
-        my $versioncheck = $helpMenu->Append(MI_VERSIONCHECK, "Controle des mise à jour...", 'Controle de nouvelle version de Slic3r');
+        $helpMenu->Append(MI_WEBSITE, "Slic3r &Website", 'Open the Slic3r website in your browser');
+        my $versioncheck = $helpMenu->Append(MI_VERSIONCHECK, "Check for &Updates...", 'Check for new Slic3r versions');
         $versioncheck->Enable(Slic3r::GUI->have_version_check);
-        $helpMenu->Append(MI_DOCUMENTATION, "&Manuel de Slic3r", 'Ouvre le manuel de Slic3r dans votre navigateur');
+        $helpMenu->Append(MI_DOCUMENTATION, "Slic3r &Manual", 'Open the Slic3r manual in your browser');
         $helpMenu->AppendSeparator();
-        $helpMenu->Append(wxID_ABOUT, "&A propos de Slic3r", 'voir le dialog a propos');
+        $helpMenu->Append(wxID_ABOUT, "&About Slic3r", 'Show about dialog');
         EVT_MENU($frame, MI_CONF_WIZARD, sub { $self->{skeinpanel}->config_wizard });
         EVT_MENU($frame, MI_WEBSITE, sub { Wx::LaunchDefaultBrowser('http://slic3r.org/') });
         EVT_MENU($frame, MI_VERSIONCHECK, sub { Slic3r::GUI->check_version(manual => 1) });
@@ -185,10 +185,10 @@ sub OnInit {
     # will not be handled correctly
     {
         my $menubar = Wx::MenuBar->new;
-        $menubar->Append($fileMenu, "&Fichier");
-        $menubar->Append($platerMenu, "&Pré-visualisation") if $platerMenu;
-        $menubar->Append($windowMenu, "&Fenêtre");
-        $menubar->Append($helpMenu, "&Aide");
+        $menubar->Append($fileMenu, "&File");
+        $menubar->Append($platerMenu, "&Plater") if $platerMenu;
+        $menubar->Append($windowMenu, "&Window");
+        $menubar->Append($helpMenu, "&Help");
         $frame->SetMenuBar($menubar);
     }
     

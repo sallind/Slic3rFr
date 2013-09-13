@@ -560,7 +560,7 @@ our $Options = {
         default => 'honeycomb',
     },
     'solid_fill_pattern' => {
-        label   => 'Top/bottom fill pattern',
+        label   => 'Modèle de remplissage haut / bas.',
         tooltip => 'Modèle de remplissage haut / bas.',
         scope   => 'object',
         category => 'Infill',

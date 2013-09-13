@@ -36,6 +36,7 @@ use Encode::Locale;
 use Boost::Geometry::Utils 0.15;
 use Moo 0.091009;
 
+use Slic3r::XS;   # import all symbols (constants etc.) before they get parsed
 use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::Extruder;
@@ -70,7 +71,6 @@ use Slic3r::Print::Object;
 use Slic3r::Print::Region;
 use Slic3r::Surface;
 use Slic3r::TriangleMesh;
-use Slic3r::XS;
 our $build = eval "use Slic3r::Build; 1";
 
 use constant SCALING_FACTOR         => 0.000001;
@@ -116,7 +116,20 @@ sub parallelize {
 sub thread_cleanup {
     # prevent destruction of shared objects
     no warnings 'redefine';
+    *Slic3r::ExPolygon::DESTROY             = sub {};
+    *Slic3r::ExPolygon::Collection::DESTROY = sub {};
+    *Slic3r::ExtrusionLoop::DESTROY         = sub {};
+    *Slic3r::ExtrusionPath::DESTROY         = sub {};
+    *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
+    *Slic3r::Line::DESTROY                  = sub {};
     *Slic3r::Object::XS::ZTable::DESTROY    = sub {};
+    *Slic3r::Point::DESTROY                 = sub {};
+    *Slic3r::Polygon::DESTROY               = sub {};
+    *Slic3r::Polyline::DESTROY              = sub {};
+    *Slic3r::Polyline::Collection::DESTROY  = sub {};
+    *Slic3r::Surface::DESTROY               = sub {};
+    *Slic3r::Surface::Collection::DESTROY   = sub {};
+    *Slic3r::TriangleMesh::DESTROY          = sub {};
 }
 
 sub encode_path {

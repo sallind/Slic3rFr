@@ -111,12 +111,12 @@ sub process_layer {
             if ($layer->support_interface_fills) {
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_interface_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material interface') 
-                    for $layer->support_interface_fills->chained_path($self->gcodegen->last_pos); 
+                    for @{$layer->support_interface_fills->chained_path_from($self->gcodegen->last_pos, 0)}; 
             }
             if ($layer->support_fills) {
                 $gcode .= $self->gcodegen->set_extruder($self->extruders->[$Slic3r::Config->support_material_extruder-1]);
                 $gcode .= $self->gcodegen->extrude_path($_, 'support material') 
-                    for $layer->support_fills->chained_path($self->gcodegen->last_pos);
+                    for @{$layer->support_fills->chained_path_from($self->gcodegen->last_pos, 0)};
             }
         }
         
@@ -137,24 +137,22 @@ sub process_layer {
                 push @islands, { perimeters => [], fills => [] }
                     for 1 .. (@{$layer->slices} || 1);  # make sure we have at least one island hash to avoid failure of the -1 subscript below
                 PERIMETER: foreach my $perimeter (@{$layerm->perimeters}) {
-                    my $p = $perimeter->unpack;
                     for my $i (0 .. $#{$layer->slices}-1) {
-                        if ($layer->slices->[$i]->contour->encloses_point($p->first_point)) {
-                            push @{ $islands[$i]{perimeters} }, $p;
+                        if ($layer->slices->[$i]->contour->encloses_point($perimeter->first_point)) {
+                            push @{ $islands[$i]{perimeters} }, $perimeter;
                             next PERIMETER;
                         }
                     }
-                    push @{ $islands[-1]{perimeters} }, $p; # optimization
+                    push @{ $islands[-1]{perimeters} }, $perimeter; # optimization
                 }
                 FILL: foreach my $fill (@{$layerm->fills}) {
-                    my $f = $fill->unpack;
                     for my $i (0 .. $#{$layer->slices}-1) {
-                        if ($layer->slices->[$i]->contour->encloses_point($f->first_point)) {
-                            push @{ $islands[$i]{fills} }, $f;
+                        if ($layer->slices->[$i]->contour->encloses_point($fill->first_point)) {
+                            push @{ $islands[$i]{fills} }, $fill;
                             next FILL;
                         }
                     }
-                    push @{ $islands[-1]{fills} }, $f; # optimization
+                    push @{ $islands[-1]{fills} }, $fill; # optimization
                 }
             } else {
                 push @islands, {
@@ -216,7 +214,7 @@ sub _extrude_infill {
     for my $fill (@{ $island->{fills} }) {
         if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
             $gcode .= $self->gcodegen->extrude($_, 'fill') 
-                for $fill->chained_path($self->gcodegen->last_pos);
+                for @{$fill->chained_path_from($self->gcodegen->last_pos, 0)};
         } else {
             $gcode .= $self->gcodegen->extrude($fill, 'fill') ;
         }

@@ -5,7 +5,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(max sum first);
-use Math::Clipper qw(offset JT_ROUND);
+use Slic3r::Geometry::Clipper qw(offset JT_ROUND);
 use Math::ConvexHull::MonotoneChain qw(convex_hull);
 use Slic3r::Geometry qw(X Y Z MIN MAX);
 use threads::shared qw(shared_clone);
@@ -34,15 +34,11 @@ my $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
 my $MESSAGE_DIALOG_EVENT    : shared = Wx::NewEventType;
 my $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 my $EXPORT_FAILED_EVENT     : shared = Wx::NewEventType;
-my $message;
 
 use constant CANVAS_SIZE => [335,335];
 use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
-    #? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
-    #: 'Drag your objects here';
     ? 'Que voulez vous imprimer aujourd\'hui? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
     : 'Glissez vos objet ici';
-	
 use constant FILAMENT_CHOOSERS_SPACING => 3;
 
 sub new {
@@ -72,22 +68,6 @@ sub new {
     # toolbar for object manipulation
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
-        #$self->{htoolbar}->AddTool(TB_LOAD, "Add…", Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_REMOVE, "Delete", Wx::Bitmap->new("$Slic3r::var/brick_delete.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_RESET, "Delete All", Wx::Bitmap->new("$Slic3r::var/cross.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_ARRANGE, "Arrange", Wx::Bitmap->new("$Slic3r::var/bricks.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddSeparator;
-        #$self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_FEWER, "Fewer", Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddSeparator;
-        #$self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_anticlockwise.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_ROTATE, "Rotate…", Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new("$Slic3r::var/arrow_out.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new("$Slic3r::var/shape_ungroup.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddSeparator;
-        #$self->{htoolbar}->AddTool(TB_VIEW, "View", Wx::Bitmap->new("$Slic3r::var/package.png", wxBITMAP_TYPE_PNG), '');
-        #$self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
         $self->{htoolbar}->AddTool(TB_LOAD, "Ajouter…", Wx::Bitmap->new("$Slic3r::var/brick_add.png", wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddTool(TB_REMOVE, "Supprimer", Wx::Bitmap->new("$Slic3r::var/brick_delete.png", wxBITMAP_TYPE_PNG), '');
@@ -107,19 +87,6 @@ sub new {
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Paramètres…", Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (
-            #load            => "Add…",
-            #remove          => "Delete",
-            #reset           => "Delete All",
-            #arrange         => "Arrange",
-            #increase        => "",
-            #decrease        => "",
-            #rotate45ccw     => "",
-            #rotate45cw      => "",
-            #rotate          => "Rotate…",
-            #changescale     => "Scale…",
-            #split           => "Split",
-            #view            => "View",
-            #settings        => "Settings…",
             load            => "Ajouter…",
             remove          => "Supprimer",
             reset           => "Supprimer tous",
@@ -142,9 +109,6 @@ sub new {
     }
 
     $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize, wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS);
-    #$self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 145);
-    #$self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 45);
-    #$self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
     $self->{list}->InsertColumn(0, "Nom", wxLIST_FORMAT_LEFT, 145);
     $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 45);
     $self->{list}->InsertColumn(2, "Echelle", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
@@ -161,8 +125,6 @@ sub new {
     });
     
     # right pane buttons
-    #$self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    #$self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Exporter le G-code…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Exporter le STL…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
@@ -234,6 +196,7 @@ sub new {
         my ($obj_idx, $thumbnail) = @{$event->GetData};
         return if !$self->{objects}[$obj_idx];  # object was deleted before thumbnail generation completed
         $self->{objects}[$obj_idx]->thumbnail($thumbnail->clone);
+
         $self->on_thumbnail_made($obj_idx);
     });
     
@@ -267,9 +230,6 @@ sub new {
         if ($self->skeinpanel->{mode} eq 'expert') {
             $presets = Wx::BoxSizer->new(wxVERTICAL);
             my %group_labels = (
-                #print       => 'Print settings',
-                #filament    => 'Filament',
-                #printer     => 'Printer',
                 print       => 'Parametres d\'impression',
                 filament    => 'Extrudeur',
                 printer     => 'Imprimante',
@@ -303,11 +263,6 @@ sub new {
             $object_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             
             my @info = (
-                #size        => "Size",
-                #volume      => "Volume",
-                #facets      => "Facets",
-                #materials   => "Materials",
-                #manifold    => "Manifold",
                 size        => "Taille",
                 volume      => "Volume",
                 facets      => "Facettes",
@@ -407,8 +362,7 @@ sub load {
     my $self = shift;
     
     my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-    #my $dialog = Wx::FileDialog->new($self, 'Choose one or more files (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-    my $dialog = Wx::FileDialog->new($self, 'Choisir un ou plusieurs fichier (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    my $dialog = Wx::FileDialog->new($self, 'Choisir un ou plusieurs fichiers (STL/OBJ/AMF):', $dir, "", &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
         return;
@@ -426,7 +380,6 @@ sub load_file {
     $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
     Slic3r::GUI->save_settings;
     
-    #my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Importation du fichier…", 100, $self, 0);
     $process_dialog->Pulse;
     
@@ -446,7 +399,6 @@ sub load_file {
                     : [0,0],
             ],
         );
-		$object->check_manifoldness;
         
         # we only consider the rotation of the first instance for now
         $object->rotate($model->objects->[$i]->instances->[0]->rotation)
@@ -457,7 +409,6 @@ sub load_file {
     }
     
     $process_dialog->Destroy;
-    #$self->statusbar->SetStatusText("Loaded $basename");
     $self->statusbar->SetStatusText("Chargé $basename");
 }
 
@@ -550,7 +501,6 @@ sub rotate {
     return if !$object->thumbnail;
     
     if (!defined $angle) {
-        #$angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate", $object->rotate, -364, 364, $self);
         $angle = Wx::GetNumberFromUser("", "Entrer l'angle de rotation:", "Rotate", $object->rotate, -364, 364, $self);
         return if !$angle || $angle == -1;
         $angle = 0 - $angle;  # rotate clockwise (be consistent with button icon)
@@ -571,7 +521,6 @@ sub changescale {
     return if !$object->thumbnail;
     
     # max scale factor should be above 2540 to allow importing files exported in inches
-    #my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale", $object->scale*100, 0, 100000, $self);
     my $scale = Wx::GetNumberFromUser("", "Entrer le % d'echelle désiré:", "Scale", $object->scale*100, 0, 100000, $self);
     return if !$scale || $scale == -1;
     
@@ -612,7 +561,6 @@ sub split_object {
     my $model_object = $current_object->get_model_object;
     
     if (@{$model_object->volumes} > 1) {
-        #Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains more than one volume/material.");
         Slic3r::GUI::warning_catcher($self)->("L'objet sélectionné ne peut pas être divisée parce qu'il contient plus d'un volume/matériel.");
         return;
     }
@@ -622,7 +570,6 @@ sub split_object {
     
     my @new_meshes = $mesh->split_mesh;
     if (@new_meshes == 1) {
-        #Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it already contains a single part.");
         Slic3r::GUI::warning_catcher($self)->("L'objet sélectionné ne peut pas être divisée parce qu'il contient déjà une seule pièce.");
         return;
     }
@@ -659,7 +606,6 @@ sub export_gcode {
     my $self = shift;
     
     if ($self->{export_thread}) {
-        #Wx::MessageDialog->new($self, "Another slicing job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
         Wx::MessageDialog->new($self, "Un autre travail de tranchage est déjà en cours.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
         return;
     }
@@ -707,12 +653,12 @@ sub export_gcode {
                     });
                 },
             );
+            Slic3r::thread_cleanup();
         });
         $self->statusbar->SetCancelCallback(sub {
             $self->{export_thread}->kill('KILL')->join;
             $self->{export_thread} = undef;
             $self->statusbar->StopBusy;
-            #$self->statusbar->SetStatusText("Export cancelled");
             $self->statusbar->SetStatusText("Exportation annulée");
         });
     } else {
@@ -734,9 +680,7 @@ sub export_gcode {
 sub export_gcode2 {
     my $self = shift;
     my ($print, $output_file, %params) = @_;
-    $Slic3r::Geometry::Clipper::clipper = Math::Clipper->new;
     local $SIG{'KILL'} = sub {
-        #Slic3r::debugf "Exporting cancelled; exiting thread...\n";
         Slic3r::debugf "Exportation annulée; sortie du thread...\n";
         threads->exit();
     } if $Slic3r::have_threads;
@@ -764,7 +708,6 @@ sub export_gcode2 {
             } : undef)->($_) for @warnings;
         }
         
-        #my $message = "Your files were successfully sliced";
         my $message = "Vos fichiers ont été tranchés avec succès";
         if ($print->processing_time) {
             $message .= ' in';
@@ -786,7 +729,6 @@ sub on_export_completed {
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
-    #$self->statusbar->SetStatusText("G-code file exported to $self->{output_file}");
     $self->statusbar->SetStatusText("Le fichier G-code est exporté dans $self->{output_file}");
     &Wx::wxTheApp->notify($message);
 }
@@ -798,7 +740,6 @@ sub on_export_failed {
     $self->{export_thread} = undef;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
-    #$self->statusbar->SetStatusText("STL file exported to $output_file");
     $self->statusbar->SetStatusText("Exportation manquée");
 }
 
@@ -807,7 +748,6 @@ sub export_stl {
         
     my $output_file = $self->_get_export_file('STL') or return;
     Slic3r::Format::STL->write_file($output_file, $self->make_model, binary => 1);
-    #$self->statusbar->SetStatusText("STL file exported to $output_file");
     $self->statusbar->SetStatusText("Le fichier STL est exporté dans $output_file");
 }
 
@@ -816,7 +756,6 @@ sub export_amf {
         
     my $output_file = $self->_get_export_file('AMF') or return;
     Slic3r::Format::AMF->write_file($output_file, $self->make_model);
-    #$self->statusbar->SetStatusText("AMF file exported to $output_file");
     $self->statusbar->SetStatusText("Le fichier AMF est exporté dans $output_file");
 }
 
@@ -830,7 +769,6 @@ sub _get_export_file {
     {
         $output_file = $self->skeinpanel->init_print->expanded_output_filepath($output_file, $self->{objects}[0]->input_file);
         $output_file =~ s/\.gcode$/$suffix/i;
-        #my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
         my $dlg = Wx::FileDialog->new($self, "Enregistrer $format fichier sous:", dirname($output_file),
             basename($output_file), &Slic3r::GUI::SkeinPanel::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
@@ -868,7 +806,7 @@ sub make_model {
         $new_model_object->add_instance(
             rotation    => $plater_object->rotate,  # around center point
             scaling_factor => $plater_object->scale,
-            offset      => Slic3r::Point->new($_),
+            offset      => Slic3r::Point->new(@$_),
         ) for @{$plater_object->instances};
     }
     
@@ -883,11 +821,11 @@ sub make_thumbnail {
     my $object = $self->{objects}[$obj_idx];
     $object->thumbnail_scaling_factor($self->{scaling_factor});
     my $cb = sub {
-    	$Slic3r::Geometry::Clipper::clipper = Math::Clipper->new if $Slic3r::have_threads;
         my $thumbnail = $object->make_thumbnail;
         
         if ($Slic3r::have_threads) {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $THUMBNAIL_DONE_EVENT, shared_clone([ $obj_idx, $thumbnail ])));
+            Slic3r::thread_cleanup();
             threads->exit;
         } else {
             $self->on_thumbnail_made($obj_idx);
@@ -1016,13 +954,12 @@ sub repaint {
     @{$parent->{object_previews}} = ();
     for my $obj_idx (0 .. $#{$parent->{objects}}) {
         my $object = $parent->{objects}[$obj_idx];
-        next unless $object->thumbnail && @{$object->thumbnail->expolygons};
+        next unless defined $object->thumbnail;
         for my $instance_idx (0 .. $#{$object->instances}) {
             my $instance = $object->instances->[$instance_idx];
             
-            my $thumbnail = $object->transformed_thumbnail
-                ->clone
-                ->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
+            my $thumbnail = $object->transformed_thumbnail->clone;
+            $thumbnail->translate(map $parent->to_pixel($instance->[$_]) + $parent->{shift}[$_], (X,Y));
             
             push @{$parent->{object_previews}}, [ $obj_idx, $instance_idx, $thumbnail ];
             
@@ -1034,11 +971,11 @@ sub repaint {
             } else {
                 $dc->SetBrush($parent->{objects_brush});
             }
-            $dc->DrawPolygon($parent->_y($_), 0, 0) for map $_->contour, @{ $parent->{object_previews}->[-1][2]->expolygons };
+            $dc->DrawPolygon($parent->_y($_), 0, 0) for map $_->contour->pp, @{ $parent->{object_previews}->[-1][2] };
             
             # if sequential printing is enabled and we have more than one object
             if ($parent->{config}->complete_objects && (map @{$_->instances}, @{$parent->{objects}}) > 1) {
-            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour}, @{$parent->{object_previews}->[-1][2]->expolygons} ])});
+            	my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->pp}, @{$parent->{object_previews}->[-1][2]} ])});
                 my ($clearance) = @{offset([$convex_hull], $parent->{config}->extruder_clearance_radius / 2 * $parent->{scaling_factor}, 100, JT_ROUND)};
                 $dc->SetPen($parent->{clearance_pen});
                 $dc->SetBrush($parent->{transparent_brush});
@@ -1049,7 +986,7 @@ sub repaint {
     
     # draw skirt
     if (@{$parent->{object_previews}} && $parent->{config}->skirts) {
-        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour}, map @{$_->[2]->expolygons}, @{$parent->{object_previews}} ])});
+        my $convex_hull = Slic3r::Polygon->new(@{convex_hull([ map @{$_->contour->pp}, map @{$_->[2]}, @{$parent->{object_previews}} ])});
         ($convex_hull) = @{offset([$convex_hull], $parent->{config}->skirt_distance * $parent->{scaling_factor}, 100, JT_ROUND)};
         $dc->SetPen($parent->{skirt_pen});
         $dc->SetBrush($parent->{transparent_brush});
@@ -1064,14 +1001,14 @@ sub mouse_event {
     my $parent = $self->GetParent;
     
     my $point = $event->GetPosition;
-    my $pos = $parent->_y([[$point->x, $point->y]])->[0]; #]]
+    my $pos = Slic3r::Point->new(map @$_, map @$_, $parent->_y([[$point->x, $point->y]])); #]]
     if ($event->ButtonDown(&Wx::wxMOUSE_BTN_LEFT)) {
         $parent->{selected_objects} = [];
         $parent->{list}->Select($parent->{list}->GetFirstSelected, 0);
         $parent->selection_changed(0);
         for my $preview (@{$parent->{object_previews}}) {
             my ($obj_idx, $instance_idx, $thumbnail) = @$preview;
-            if (first { $_->contour->encloses_point($pos) } @{$thumbnail->expolygons}) {
+            if (defined first { $_->contour->encloses_point($pos) } @$thumbnail) {
                 $parent->{selected_objects} = [ [$obj_idx, $instance_idx] ];
                 $parent->{list}->Select($obj_idx, 1);
                 $parent->selection_changed(1);
@@ -1100,7 +1037,7 @@ sub mouse_event {
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
         for my $preview (@{$parent->{object_previews}}) {
-            if (first { $_->contour->encloses_point($pos) } @{ $preview->[2]->expolygons }) {
+            if (defined first { $_->contour->encloses_point($pos) } @{ $preview->[2] }) {
                 $cursor = Wx::Cursor->new(wxCURSOR_HAND);
                 last;
             }
@@ -1205,7 +1142,6 @@ sub selection_changed {
                 $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($object->scale**3)));
                 $self->{object_info_facets}->SetLabel(sprintf('%d (%d shells)', $object->facets, $stats->{number_of_parts}));
                 if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
-                    #$self->{object_info_manifold}->SetLabel(sprintf("Auto-repaired (%d errors)", $errors));
                     $self->{object_info_manifold}->SetLabel(sprintf("Reparation automatique (%d errors)", $errors));
                     $self->{object_info_manifold_warning_icon}->Show;
                     
@@ -1333,10 +1269,10 @@ sub _trigger_model_object {
 	    $self->bounding_box($model_object->bounding_box);
 	    
     	my $mesh = $model_object->mesh;
-        $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->used_vertices)}));
-	    $self->facets(scalar @{$mesh->facets});
-	    $self->vertices(scalar @{$mesh->vertices});
-	    
+    	$mesh->repair;
+        $self->convex_hull(Slic3r::Polygon->new(@{Math::ConvexHull::MonotoneChain::convex_hull($mesh->vertices)}));
+	    $self->facets($mesh->facets_count);
+	    $self->vertices(scalar @{$mesh->vertices});	    
 	    $self->materials($model_object->materials_count);
 	}
 }
@@ -1353,24 +1289,17 @@ sub changescale {
     $self->scale($scale);
 }
 
-sub check_manifoldness {
+sub needed_repair {
 	my $self = shift;
 	
-	if ($self->mesh_stats) {
-	    if ($self->get_model_object->needed_repair) {
-	        #warn "Warning: the input file contains manifoldness errors. "
-	        #    . "Slic3r repaired it successfully by guessing what the correct shape should be, "
-	        #    . "but you might still want to inspect the G-code before printing.\n";
-	        warn "Attention: le fichier d'entrée contient plusieurs erreurs. "
-                    . "Slic3r à réparé avec succès en devinant ce que la forme correcte devrait être,"
-                    . "mais vous pouvez toujours vouloir inspecter le G-code avant l\'impression.\n";
-	        $self->is_manifold(0);
-	    } else {
-	        $self->is_manifold(1);
-	    }
+	if ($self->get_model_object->needed_repair) {
+        warn "Attention: le fichier d'entrée contient plusieurs erreurs. "
+            . "Slic3r à réparé avec succès en devinant ce que la forme correcte devrait être,"
+            . "mais vous pouvez toujours vouloir inspecter le G-code avant l\'impression.\n";
+        $self->is_manifold(0);
 	} else {
-    	$self->is_manifold($self->get_model_object->check_manifoldness);
-    }
+	    $self->is_manifold(1);
+	}
 	return $self->is_manifold;
 }
 
@@ -1406,20 +1335,20 @@ sub make_thumbnail {
     
     my $mesh = $self->get_model_object->mesh;  # $self->model_object is already aligned to origin
     my $thumbnail = Slic3r::ExPolygon::Collection->new;
+    $mesh->repair;
     if (@{$mesh->facets} <= 5000) {
-        $thumbnail->append(@{ $mesh->horizontal_projection });
+        # remove polygons with area <= 1mm
+        my $area_threshold = Slic3r::Geometry::scale 1;
+        $thumbnail->append(
+            map $_->simplify(0.5),
+            grep $_->area >= $area_threshold,
+            @{ $mesh->horizontal_projection },
+        );
     } else {
         my $convex_hull = Slic3r::ExPolygon->new($self->convex_hull)->clone;
         $convex_hull->scale(1/&Slic3r::SCALING_FACTOR);
         $thumbnail->append($convex_hull);
     }
-    
-    # remove polygons with area <= 1mm
-    my $area_threshold = Slic3r::Geometry::scale 1;
-    @{$thumbnail->expolygons} =
-        map $_->simplify(0.5),
-        grep $_->area >= $area_threshold,
-        @{$thumbnail->expolygons};
     
     $thumbnail->scale(&Slic3r::SCALING_FACTOR);
     $self->thumbnail($thumbnail);  # ignored in multi-threaded environments
@@ -1430,7 +1359,7 @@ sub make_thumbnail {
 sub _transform_thumbnail {
     my $self = shift;
     
-    return unless $self->thumbnail;
+    return unless defined $self->thumbnail;
     my $t = $self->_apply_transform($self->thumbnail);
     $t->scale($self->thumbnail_scaling_factor);
     
@@ -1453,10 +1382,10 @@ sub _apply_transform {
     
     # the order of these transformations MUST be the same everywhere, including
     # in Slic3r::Print->add_model()
-    return $entity
-        ->clone
-        ->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D)
-        ->scale($self->scale);
+    my $result = $entity->clone;
+    $result->rotate(deg2rad($self->rotate), $self->bounding_box->center_2D);
+    $result->scale($self->scale);
+    return $result;
 }
 
 sub transformed_size {

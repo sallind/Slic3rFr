@@ -37,8 +37,6 @@ sub new {
         # buttons
         $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG));
         $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
-        #$self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
-        #$self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_save_preset}->SetToolTipString("Enregistrer courrant " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Supprimer cet enregistrement");
         $self->{btn_delete_preset}->Disable;
@@ -94,7 +92,6 @@ sub new {
         $self->{treectrl}->SetFocus;
         
         my $preset = $self->current_preset;
-        #my $default_name = $preset->{default} ? 'Untitled' : basename($preset->{name});
         my $default_name = $preset->{default} ? 'SansTitre' : basename($preset->{name});
         $default_name =~ s/\.ini$//i;
         
@@ -117,7 +114,6 @@ sub new {
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
         my $i = $self->{presets_choice}->GetSelection;
         return if $i == 0;  # this shouldn't happen but let's trap it anyway
-        #my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         my $res = Wx::MessageDialog->new($self, "Etes vous sur de vouloir supprimer cette enregistrement", 'Supprimer l\'enregistrement', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         return unless $res == wxID_YES;
         if (-e $self->{presets}[$i]{file}) {
@@ -184,8 +180,6 @@ sub on_select_preset {
     
     if (defined $self->{dirty}) {
         my $name = $self->{dirty} == 0 ? 'Default preset' : "Preset \"$self->{presets}[$self->{dirty}]{name}\"";
-        #my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes. Discard changes and continue anyway?",
-        #                                     'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         my $confirm = Wx::MessageDialog->new($self, "$name n\'est pas enregistré. Annuler les changements ou continuer?",
                                              'Annuler les changements', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
@@ -213,7 +207,6 @@ sub on_select_preset {
         $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->{file} ? basename($preset->{file}) : '';
     };
     if ($@) {
-        #$@ = "I was unable to load the selected config file: $@";
         $@ = "Il n'est pas possible de séléctionner le fichier de configuration: $@";
         Slic3r::GUI::catch_error($self);
         $self->select_default_preset;
@@ -230,7 +223,6 @@ sub get_preset_config {
         return Slic3r::Config->new_from_defaults(@{$self->{options}});
     } else {
         if (!-e $preset->{file}) {
-            #Slic3r::GUI::show_error($self, "The selected preset does not exist anymore ($preset->{file}).");
             Slic3r::GUI::show_error($self, "Le préréglage sélectionné n\'existe plus ($preset->{file}).");
             return;
         }
@@ -347,7 +339,6 @@ sub load_presets {
         name    => '- default -',
     }];
     
-    #opendir my $dh, "$Slic3r::GUI::datadir/" . $self->name or die "Failed to read directory $Slic3r::GUI::datadir/" . $self->name . " (errno: $!)\n";
     opendir my $dh, "$Slic3r::GUI::datadir/" . $self->name or die "Impossible de lire le répertoire $Slic3r::GUI::datadir/" . $self->name . " (errno: $!)\n";
     foreach my $file (sort grep /\.ini$/i, readdir $dh) {
         my $name = basename($file);
@@ -400,39 +391,32 @@ sub title { 'Paramètre d\'impression' }
 sub build {
     my $self = shift;
     
-    #$self->add_options_page('Layers and perimeters', 'layers.png', optgroups => [
     $self->add_options_page('Couches et périmètres', 'layers.png', optgroups => [
         {
-            #title => 'Layer height',
             title => 'Hauteur de couche',
             options => [qw(layer_height first_layer_height)],
         },
         {
-            #title => 'Vertical shells',
             title => 'Coquille verticale',
             options => [qw(perimeters spiral_vase)],
         },
         {
-            #title => 'Horizontal shells',
             title => 'Coquille Horizontale',
             options => [qw(top_solid_layers bottom_solid_layers)],
             lines => [
                 {
-                    #label   => 'Solid layers',
                     label   => 'Couche solide',
                     options => [qw(top_solid_layers bottom_solid_layers)],
                 },
             ],
         },
         {
-            #title => 'Quality (slower slicing)',
             title => 'Qualité (tranchage lent)',
             options => [qw(extra_perimeters avoid_crossing_perimeters start_perimeters_at_concave_points start_perimeters_at_non_overhang thin_walls overhangs)],
             lines => [
                 Slic3r::GUI::OptionsGroup->single_option_line('extra_perimeters'),
                 Slic3r::GUI::OptionsGroup->single_option_line('avoid_crossing_perimeters'),
                 {
-                    #label   => 'Start perimeters at',
                     label   => 'Debut du périmètres à',
                     options => [qw(start_perimeters_at_concave_points start_perimeters_at_non_overhang)],
                 },
@@ -441,91 +425,73 @@ sub build {
             ],
         },
         {
-            #title => 'Advanced',
             title => 'Avancé',
             options => [qw(randomize_start external_perimeters_first)],
         },
     ]);
     
-    #$self->add_options_page('Infill', 'shading.png', optgroups => [
     $self->add_options_page('Remplissage', 'shading.png', optgroups => [
         {
-            #title => 'Infill',
             title => 'Remplissage',
             options => [qw(fill_density fill_pattern solid_fill_pattern)],
         },
         {
-            #title => 'Reducing printing time',
             title => 'Diminue le temps d\'impression',
             options => [qw(infill_every_layers infill_only_where_needed)],
         },
         {
-            #title => 'Advanced',
             title => 'Avancé',
             options => [qw(solid_infill_every_layers fill_angle
                 solid_infill_below_area only_retract_when_crossing_perimeters infill_first)],
         },
     ]);
     
-    #$self->add_options_page('Speed', 'time.png', optgroups => [
     $self->add_options_page('Vitesse', 'time.png', optgroups => [
         {
-            #title => 'Speed for print moves',
             title => 'Vitesse de déplacement d\'impression',
             options => [qw(perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed solid_infill_speed top_solid_infill_speed support_material_speed bridge_speed gap_fill_speed)],
         },
         {
-            #title => 'Speed for non-print moves',
             title => 'Vitesse de déplacement sans impression',
             options => [qw(travel_speed)],
         },
         {
-            #title => 'Modifiers',
             title => 'Modificateurs',
             options => [qw(first_layer_speed)],
         },
         {
-            #title => 'Acceleration control (advanced)',
             title => 'Commande d\'accélération (avancé)',
             options => [qw(perimeter_acceleration infill_acceleration bridge_acceleration first_layer_acceleration default_acceleration)],
         },
     ]);
     
-    #$self->add_options_page('Skirt and brim', 'box.png', optgroups => [
     $self->add_options_page('Jupe et le bord', 'box.png', optgroups => [
         {
-            #title => 'Skirt',
             title => 'Jupe',
             options => [qw(skirts skirt_distance skirt_height min_skirt_length)],
         },
         {
-            #title => 'Brim',
             title => 'Bord',
             options => [qw(brim_width)],
         },
     ]);
     
-    #$self->add_options_page('Support material', 'building.png', optgroups => [
     $self->add_options_page('Matériaux d\'appui', 'building.png', optgroups => [
         {
-            #title => 'Support material',
             title => 'Matériaux d\'appui',
             options => [qw(support_material support_material_threshold support_material_enforce_layers)],
         },
         {
-            #title => 'Raft',
             title => 'Radier',
             options => [qw(raft_layers)],
         },
         {
-            #title => 'Options for support material and raft',
             title => 'Options de matériaux d\'appui',
             options => [qw(support_material_pattern support_material_spacing support_material_angle
                 support_material_interface_layers support_material_interface_spacing)],
         },
     ]);
     
-    #$self->add_options_page('Notes', 'note.png', optgroups => [
     $self->add_options_page('Notes', 'note.png', optgroups => [
         {
             title => 'Notes',
@@ -534,58 +500,47 @@ sub build {
         },
     ]);
     
-    #$self->add_options_page('Output options', 'page_white_go.png', optgroups => [
     $self->add_options_page('Option de sortie', 'page_white_go.png', optgroups => [
         {
-            #title => 'Sequential printing',
             title => 'Impression séquentielle',
             options => [qw(complete_objects extruder_clearance_radius extruder_clearance_height)],
             lines => [
                 Slic3r::GUI::OptionsGroup->single_option_line('complete_objects'),
                 {
-                    #label   => 'Extruder clearance (mm)',
                     label   => 'Dégagement Extrudeur (mm)',
                     options => [qw(extruder_clearance_radius extruder_clearance_height)],
                 },
             ],
         },
         {
-            #title => 'Output file',
             title => 'Fichier de sortie',
             options => [qw(gcode_comments output_filename_format)],
         },
         {
-            #title => 'Post-processing scripts',
             title => 'Scripts de post-traitement',
             no_labels => 1,
             options => [qw(post_process)],
         },
     ]);
     
-    #$self->add_options_page('Multiple Extruders', 'funnel.png', optgroups => [
     $self->add_options_page('Extrudeur multiples', 'funnel.png', optgroups => [
         {
-            #title => 'Extruders',
             title => 'Extrudeurs',
             options => [qw(perimeter_extruder infill_extruder support_material_extruder support_material_interface_extruder)],
         },
     ]);
     
-    #$self->add_options_page('Advanced', 'wrench.png', optgroups => [
     $self->add_options_page('Avancé', 'wrench.png', optgroups => [
         {
-            #title => 'Extrusion width',
             title => 'Largeur d\'extrusion',
             label_width => 180,
             options => [qw(extrusion_width first_layer_extrusion_width perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width top_infill_extrusion_width support_material_extrusion_width)],
         },
         {
-            #title => 'Flow',
             title => 'Circulation',
             options => [qw(bridge_flow_ratio)],
         },
         {
-            #title => 'Other',
             title => 'Autre',
             options => [($Slic3r::have_threads ? qw(threads) : ()), qw(resolution)],
         },
@@ -603,25 +558,20 @@ sub title { 'Paramètre de fil' }
 sub build {
     my $self = shift;
     
-    #$self->add_options_page('Filament', 'spool.png', optgroups => [
     $self->add_options_page('Tête d\'impression', 'spool.png', optgroups => [
         {
-           # title => 'Filament',
             title => 'Tête d\'impression',
             options => ['filament_diameter#0', 'extrusion_multiplier#0'],
         },
         {
-            #title => 'Temperature (°C)',
             title => 'Température (°C)',
             options => ['temperature#0', 'first_layer_temperature#0', qw(bed_temperature first_layer_bed_temperature)],
             lines => [
                 {
-                    #label   => 'Extruder',
                     label   => 'Extrudeur',
                     options => ['first_layer_temperature#0', 'temperature#0'],
                 },
                 {
-                    #label   => 'Bed',
                     label   => 'Lit d\'impression',
                     options => [qw(first_layer_bed_temperature bed_temperature)],
                 },
@@ -629,10 +579,8 @@ sub build {
         },
     ]);
     
-    #$self->add_options_page('Cooling', 'hourglass.png', optgroups => [
     $self->add_options_page('Refroidissement', 'hourglass.png', optgroups => [
         {
-            #title => 'Enable',
             title => 'Marche',
             options => [qw(fan_always_on cooling)],
             lines => [
@@ -645,12 +593,10 @@ sub build {
             ],
         },
         {
-            #title => 'Fan settings',
             title => 'Paramètres du ventillateur',
             options => [qw(min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers)],
             lines => [
                 {
-                    #label   => 'Fan speed',
                     label   => 'Vitesse du ventillateur',
                     options => [qw(min_fan_speed max_fan_speed)],
                 },
@@ -659,7 +605,6 @@ sub build {
             ],
         },
         {
-            #title => 'Cooling thresholds',
             title => 'Seuils de refroidissement',
             label_width => 250,
             options => [qw(fan_below_layer_time slowdown_below_layer_time min_print_speed)],
@@ -673,14 +618,6 @@ sub _update_description {
     my $config = $self->config;
     
     my $msg = "";
-    #my $fan_other_layers = $config->fan_always_on
-    #    ? sprintf "will always run at %d%%%s.", $config->min_fan_speed,
-    #            ($config->disable_fan_first_layers > 1
-    #                ? " except for the first " . $config->disable_fan_first_layers . " layers"
-    #                : $config->disable_fan_first_layers == 1
-    #                    ? " except for the first layer"
-    #                    : "")
-    #    : "will be turned off.";
     my $fan_other_layers = $config->fan_always_on
         ? sprintf "sera toujours en marche à %d%%%s.", $config->min_fan_speed,
                 ($config->disable_fan_first_layers > 1
@@ -691,18 +628,14 @@ sub _update_description {
         : "sera éteint.";
     
     if ($config->cooling) {
-        #$msg = sprintf "If estimated layer time is below ~%ds, fan will run at 100%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
         $msg = sprintf "Si le temps de la couche estimé est inférieur à ~%ds, le ventilateur fonctionnera à 100%% et la vitesse d\'impression sera réduite de sorte que pas moins de %ds sont dépensés sur ce calque (cependant, la vitesse ne sera jamais réduite en dessous de %dmm/s).",
             $config->slowdown_below_layer_time, $config->slowdown_below_layer_time, $config->min_print_speed;
         if ($config->fan_below_layer_time > $config->slowdown_below_layer_time) {
-            #$msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
             $msg .= sprintf "\nSi le temps de la couche estimée est supérieure, mais encore en dessous ~%ds, le ventilateur tournera à une vitesse décroissante proportionnellement entre %d%% et %d%%.",
                 $config->fan_below_layer_time, $config->max_fan_speed, $config->min_fan_speed;
         }
-        #$msg .= "\nDuring the other layers, fan $fan_other_layers"
         $msg .= "\nPendant les autres couches, ventiller $fan_other_layers"
     } else {
-        #$msg = "Fan $fan_other_layers";
         $msg = "Ventillateur $fan_other_layers";
     }
     $self->{description_line}->SetText($msg);
@@ -727,26 +660,20 @@ sub build {
     
     $self->{extruders_count} = 1;
     
-    #$self->add_options_page('General', 'printer_empty.png', optgroups => [
     $self->add_options_page('Général', 'printer_empty.png', optgroups => [
         {
-            #title => 'Size and coordinates',
             title => 'Taille et coordonées',
             options => [qw(bed_size print_center z_offset)],
         },
         {
-            #title => 'Firmware',
             title => 'Firmware',
             options => [qw(gcode_flavor use_relative_e_distances)],
         },
         {
-            #title => 'Capabilities',
             title => 'Fonctionnalités',
             options => [
                 {
                     opt_key => 'extruders_count',
-                    #label   => 'Extruders',
-                    #tooltip => 'Number of extruders of the printer.',
                     label   => 'Extrudeurs',
                     tooltip => 'Nomdre d\'extrudeurs sur l\'imprimante.',
                     type    => 'i',
@@ -757,34 +684,28 @@ sub build {
             ],
         },
         {
-            #title => 'Advanced',
             title => 'Avancé',
             options => [qw(vibration_limit)],
         },
     ]);
     
-    #$self->add_options_page('Custom G-code', 'cog.png', optgroups => [
     $self->add_options_page('Amélioration G-code', 'cog.png', optgroups => [
         {
-            #title => 'Start G-code',
             title => 'G-code du debut',
             no_labels => 1,
             options => [qw(start_gcode)],
         },
         {
-            #title => 'End G-code',
             title => 'G-code de fin',
             no_labels => 1,
             options => [qw(end_gcode)],
         },
         {
-            #title => 'Layer change G-code',
             title => 'G-code de changement de couche',
             no_labels => 1,
             options => [qw(layer_gcode)],
         },
         {
-            #title => 'Tool change G-code',
             title => 'G-code de changement d\'outil',
             no_labels => 1,
             options => [qw(toolchange_gcode)],
@@ -817,19 +738,15 @@ sub _build_extruder_pages {
     foreach my $extruder_idx (0 .. $self->{extruders_count}-1) {
         # build page if it doesn't exist
         $self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png', optgroups => [
-        #$self->{extruder_pages}[$extruder_idx] ||= $self->add_options_page("Extrudeur " . ($extruder_idx + 1), 'funnel.png', optgroups => [
             {
-                #title => 'Size',
                 title => 'Taille',
                 options => ['nozzle_diameter#' . $extruder_idx],
             },
             {
-                #title => 'Position (for multi-extruder printers)',
                 title => 'Position (pour les imprimantes à extrudeur multiple)',
                 options => ['extruder_offset#' . $extruder_idx],
             },
             {
-                #title => 'Retraction',
                 title => 'Rétraction',
                 options => [
                     map "${_}#${extruder_idx}",
@@ -837,7 +754,6 @@ sub _build_extruder_pages {
                 ],
             },
             {
-                #title => 'Retraction when tool is disabled (advanced settings for multi-extruder setups)',
                 title => 'Rétractation lorsque l\'outil est désactivé (paramètres avancés pour les configurations multi-extrusion)',
                 options => [
                     map "${_}#${extruder_idx}",
@@ -893,11 +809,7 @@ sub on_preset_loaded {
 sub load_config_file {
     my $self = shift;
     $self->SUPER::load_config_file(@_);  
-    #Slic3r::GUI::warning_catcher($self)->(
-    #    "Your configuration was imported. However, Slic3r is currently only able to import settings "
-    #    . "for the first defined filament. We recommend you don't use exported configuration files "
-    #    . "for multi-extruder setups and rely on the built-in preset management system instead.")
-    #    if @{ $self->{config}->nozzle_diameter } > 1;
+  
     Slic3r::GUI::warning_catcher($self)->(
         "Votre configuration a été importé. Cependant, Slic3r n'est actuellement en mesure d\'importer des paramètres "
         . "pour le premier fil défini. Nous vous recommandons de ne pas utiliser les fichiers de configuration exportés "
@@ -967,10 +879,8 @@ use base 'Wx::Dialog';
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
-    #my $self = $class->SUPER::new($parent, -1, "Save preset", wxDefaultPosition, wxDefaultSize);
     my $self = $class->SUPER::new($parent, -1, "Enregistrement des préréglage", wxDefaultPosition, wxDefaultSize);
     
-    #my $text = Wx::StaticText->new($self, -1, "Save " . lc($params{title}) . " as:", wxDefaultPosition, wxDefaultSize);
     my $text = Wx::StaticText->new($self, -1, "Enregistrement " . lc($params{title}) . " sous:", wxDefaultPosition, wxDefaultSize);
     $self->{combo} = Wx::ComboBox->new($self, -1, $params{default}, wxDefaultPosition, wxDefaultSize, $params{values},
                                        wxTE_PROCESS_ENTER);
@@ -997,7 +907,6 @@ sub accept {
         if ($self->{chosen_name} =~ /^[^<>:\/\\|?*\"]+$/i) {
             $self->EndModal(wxID_OK);
         } else {
-            #Slic3r::GUI::show_error($self, "The supplied name is not valid; the following characters are not allowed: <>:/\|?*\"");
             Slic3r::GUI::show_error($self, "Le nom fourni n'est pas valide, les caractères suivants ne sont pas autorisés: <>:/\|?*\"");
         }
     }
